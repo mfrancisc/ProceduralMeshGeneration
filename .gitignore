@@ -1,0 +1,12 @@
+########################
+# Unreal generated files
+########################
+**/Saved
+**/Intermediate
+**/DerivedDataCache
+**/Build
+**/Binaries
+**/Content/StarterContent
+**/ZuruTest.uproject
+**/ZuruTest.xcworkspace
+**/xcuserdata
