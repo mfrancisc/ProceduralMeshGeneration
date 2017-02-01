@@ -12,10 +12,10 @@ class ZURUTEST_API ATablePawn : public APawn
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this pawn's properties
+	// Sets default values for this Pawn's properties
 	ATablePawn();
 
-	// Called when the game starts or when spawned
+	// Called when the game starts or when sPawned
 	virtual void BeginPlay() override;
 	
 	// Called every frame
@@ -25,21 +25,35 @@ public:
     virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
 	void ResizeAction();
+    void PossesClicked();
+    void ResizeDownX(float axisValue);
+    void ResizeUpX(float axisValue);
+    void ResizeLeftY(float axisValue);
+    void ResizeRightY(float axisValue);
 	/**#if WITH_EDITOR
     	virtual void OnConstruction(const FTransform& Transform) override;
-	#endif   **/// WITH_EDITOR
+	#endif */  // WITH_EDITOR
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
     FVector Size = FVector(100.0f, 100.0f, 5.0f);
+    FVector InitialSize = FVector(100.0f, 100.0f, 5.0f);
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
-    float offsetDiffX;
+    float offsetDiffX = Size.X / 2.0f - 2.5f;
    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
-    float offsetDiffY;
+    float offsetDiffY = Size.Y / 2.0f - 2.5f;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
-    float offsetDiffZ;
+    float offsetDiffZ = Size.Z * 5 + 2.5f;
+
+    // initial table offeset
+    FVector OffsetPosT = FVector(0.0f, 0.0f, 0.0f);
+    FVector InitialOffsetPosT = FVector(0.0f, 0.0f, 0.0f);
+    FVector OffsetPosFirstLeg;
+    FVector OffsetPosSecondLeg;
+    FVector OffsetPosThirdLeg;
+    FVector OffsetPosFourthLeg;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
     FVector LegSize = FVector(5.0f, 5.0f, 50.0f);
@@ -55,6 +69,8 @@ protected:
     
     UPROPERTY()
     URuntimeMeshComponent* MeshComponent;
+
+     //static ConstructorHelpers::FObjectFinder<UStaticMesh> ReferenceVariable (TEXT("Material'/Game/StarterContent/Materials/M_Wood_Pine.M_Wood_Pine'"));
     
 private:
     void GenerateMesh();
