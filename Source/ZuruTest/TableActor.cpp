@@ -1,10 +1,10 @@
 #include "ZuruTest.h"
-#include "TablePawn.h"
+#include "TableActor.h"
+#include "ChairActor.h"
 
-// Sets default values
-ATablePawn::ATablePawn()
+ATableActor::ATableActor()
 {
-    // Set this Pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+    // Set this Actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
 
     RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
@@ -14,41 +14,56 @@ ATablePawn::ATablePawn()
     //MeshComponent->bUseComplexAsSimpleCollision = false;
 
     // Create a camera and a visible object
-    UCameraComponent *OurCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("OurCamera"));
+    /*UCameraComponent *OurCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("OurCamera"));
     // Attach our camera and visible object to our root component. Offset and rotate the camera.
     OurCamera->SetupAttachment(RootComponent);
     OurCamera->SetRelativeLocation(FVector(-250.0f, 0.0f, 250.0f));
-    OurCamera->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));
+    OurCamera->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));*/
    ConstructorHelpers::FObjectFinder<UMaterialInterface> ReferenceVariable (TEXT("Material'/Game/StarterContent/Materials/M_Wood_Pine.M_Wood_Pine'")); 
    if(ReferenceVariable.Succeeded())
     {
         Material = ReferenceVariable.Object;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("Created Table Pawn "));
+    UE_LOG(LogTemp, Warning, TEXT("Created Table Actor "));
+
+/*FActorSpawnParameters SpawnInfo;
+ SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+ FVector Location(0.0f, 0.0f, 0.0f);
+ FRotator Rotation(0.0f, 0.0f, 0.0f);
+ FActorSpawnParameters SpawnInfo;
+ GetWorld()->SpawnActor<AChairActor>(Location, Rotation, SpawnInfo);*/
 }
 
-// Called when the game starts or when sPawned
-void ATablePawn::BeginPlay()
+#if WITH_EDITOR  
+void ATableActor::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	GenerateMesh();
+}
+#endif // WITH_EDITOR
+
+// Called when the game starts or when sActored
+void ATableActor::BeginPlay()
 {
     Super::BeginPlay();
     GenerateMesh();
 }
 
 // Called every frame
-void ATablePawn::Tick(float DeltaTime)
+void ATableActor::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 }
 
-void ATablePawn::SetupMeshBuffers()
+void ATableActor::SetupMeshBuffers()
 {
     int32 VertexCount = 6 * 4; // 6 sides on a cube, 4 verts each
     Vertices.AddUninitialized(VertexCount);
     Triangles.AddUninitialized(6 * 2 * 3); // 2x triangles per cube side, 3 verts each
 }
 
-void ATablePawn::GenerateMesh()
+void ATableActor::GenerateMesh()
 {
     // The number of vertices or polygons wont change at runtime, so we'll just allocate the arrays once
     if (!bHaveBuffersBeenInitialized)
@@ -57,9 +72,13 @@ void ATablePawn::GenerateMesh()
         bHaveBuffersBeenInitialized = true;
     }
 
+
+    //////////////////////////
+    // TABLE GENERATION
+    /////////////////////////
+
     FBox BoundingBox = FBox(-Size / 2.0f, Size / 2.0f);
     
-    FVector OffsetPos = FVector(0.0f, 0.0f, 0.0f);
     GenerateCube(Vertices, Triangles, Size, OffsetPosT);
     MeshComponent->ClearAllMeshSections();
     MeshComponent->CreateMeshSection(0, Vertices, Triangles, BoundingBox, true, EUpdateFrequency::Frequent);
@@ -88,9 +107,10 @@ void ATablePawn::GenerateMesh()
     GenerateCube(Vertices, Triangles, LegSize, OffsetPosFourthLeg);
     MeshComponent->CreateMeshSection(4, Vertices, Triangles, BoundingBox, true, EUpdateFrequency::Frequent);
     MeshComponent->SetMaterial(4, Material);
+    
 }
 
-void ATablePawn::GenerateCube(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector InSize, FVector OffsetPos)
+void ATableActor::GenerateCube(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector InSize, FVector OffsetPos)
 {
     // Calculate a half offset so we get correct center of object
     float OffsetX = InSize.X / 2.0f;
@@ -144,7 +164,7 @@ void ATablePawn::GenerateCube(TArray<FRuntimeMeshVertexSimple> &InVertices, TArr
     BuildQuad(InVertices, InTriangles, p1, p0, p4, p5, VertexOffset, TriangleOffset, Normal, Tangent);
 }
 
-void ATablePawn::BuildQuad(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector BottomLeft, FVector BottomRight, FVector TopRight, FVector TopLeft, int32 &VertexOffset, int32 &TriangleOffset, FPackedNormal Normal, FPackedNormal Tangent)
+void ATableActor::BuildQuad(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector BottomLeft, FVector BottomRight, FVector TopRight, FVector TopLeft, int32 &VertexOffset, int32 &TriangleOffset, FPackedNormal Normal, FPackedNormal Tangent)
 {
     int32 Index1 = VertexOffset++;
     int32 Index2 = VertexOffset++;
@@ -170,7 +190,7 @@ void ATablePawn::BuildQuad(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<
 }
 
 // Called to bind functionality to input
-void ATablePawn::SetupPlayerInputComponent(class UInputComponent *InputComp)
+/*void ATableActor::SetupPlayerInputComponent(class UInputComponent *InputComp)
 {
 
     UE_LOG(LogTemp, Warning, TEXT("Create Input component "));
@@ -178,16 +198,16 @@ void ATablePawn::SetupPlayerInputComponent(class UInputComponent *InputComp)
     Super::SetupPlayerInputComponent(InputComp);
     
     // TODO use mouse to resize objects
-    InputComp->BindAction("ResizeAction", EInputEvent::IE_Pressed, this, &ATablePawn::ResizeAction);
+    InputComp->BindAction("ResizeAction", EInputEvent::IE_Pressed, this, &ATableActor::ResizeAction);
     
     // resize objects using keyboard
-    InputComp->BindAxis("ResizeUpX", this, &ATablePawn::ResizeUpX);
-    InputComp->BindAxis("ResizeDownX", this, &ATablePawn::ResizeDownX);
-    InputComp->BindAxis("ResizeLeftY", this, &ATablePawn::ResizeLeftY);
-    InputComp->BindAxis("ResizeRightY", this, &ATablePawn::ResizeRightY);
-}
+    InputComp->BindAxis("ResizeUpX", this, &ATableActor::ResizeUpX);
+    InputComp->BindAxis("ResizeDownX", this, &ATableActor::ResizeDownX);
+    InputComp->BindAxis("ResizeLeftY", this, &ATableActor::ResizeLeftY);
+    InputComp->BindAxis("ResizeRightY", this, &ATableActor::ResizeRightY);
+}*/
 
-void ATablePawn::ResizeUpX(float axisValue)
+void ATableActor::ResizeUpX(float axisValue)
 {
     Size.X = Size.X - axisValue*2;
     FBox BoundingBox = FBox(-Size / 2.0f, Size / 2.0f);
@@ -213,7 +233,7 @@ void ATablePawn::ResizeUpX(float axisValue)
     MeshComponent->UpdateMeshSection(4, Vertices);
 }
 
-void ATablePawn::ResizeDownX(float axisValue)
+void ATableActor::ResizeDownX(float axisValue)
 {
     // Resize Table
     Size.X = Size.X + axisValue*2;
@@ -233,7 +253,7 @@ void ATablePawn::ResizeDownX(float axisValue)
     MeshComponent->UpdateMeshSection(4, Vertices);
 }
 
-void ATablePawn::ResizeLeftY(float axisValue)
+void ATableActor::ResizeLeftY(float axisValue)
 {
     Size.Y = Size.Y - axisValue*2;
     FBox BoundingBox = FBox(-Size / 2.0f, Size / 2.0f);
@@ -259,7 +279,7 @@ void ATablePawn::ResizeLeftY(float axisValue)
     MeshComponent->UpdateMeshSection(2, Vertices);
 }
 
-void ATablePawn::ResizeRightY(float axisValue)
+void ATableActor::ResizeRightY(float axisValue)
 {
     Size.Y = Size.Y + axisValue*2;
     FBox BoundingBox = FBox(-Size / 2.0f, Size / 2.0f);
@@ -279,15 +299,15 @@ void ATablePawn::ResizeRightY(float axisValue)
     MeshComponent->UpdateMeshSection(2, Vertices);
 }
 
-void ATablePawn::ResizeAction()
+void ATableActor::ResizeAction()
 {
     UE_LOG(LogTemp, Warning, TEXT("Resize Right action "));
     PossesClicked();
 }
 
-void ATablePawn::PossesClicked()
+void ATableActor::PossesClicked()
 {
-    APlayerController *PlayerController = Cast<APlayerController>(GetController());
+/*    APlayerController *PlayerController = Cast<APlayerController>(GetController());
     if (PlayerController != nullptr)
     {
         // Get the coordinates of the mouse from our controller
@@ -307,20 +327,20 @@ void ATablePawn::PossesClicked()
   
           
             
-            // If the Pawn we intersected with is a controller posses it
-            APawn *ClickedPawn = Cast<APawn>(HitResult.GetActor());
-            if (ClickedPawn != nullptr)
+            // If the Actor we intersected with is a controller posses it
+            AActor *ClickedActor = Cast<AActor>(HitResult.GetActor());
+            if (ClickedActor != nullptr)
             {
 
-                // TODO scale Pawn based on mouse dragging
+                // TODO scale Actor based on mouse dragging
 
-                UE_LOG(LogTemp, Warning, TEXT("hit point in Pawn"));
+                UE_LOG(LogTemp, Warning, TEXT("hit point in Actor"));
                 // Unposses ourselves
                 PlayerController->UnPossess();
                 // Posses the controller we clicked on
-                PlayerController->Possess(ClickedPawn);
+                PlayerController->Possess(ClickedActor);
             }
         }
-    }
+    }*/
 }
 
