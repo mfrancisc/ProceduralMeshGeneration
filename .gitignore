@@ -11,4 +11,6 @@
 **/ZuruTest.xcworkspace
 **/xcuserdata
 .vs*
+*.uasset
 ZuruTest.VC.db
+ZuruTest.VC.VC.opendb

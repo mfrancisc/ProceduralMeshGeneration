@@ -1,10 +1,10 @@
 #include "ZuruTest.h"
-#include "ChairActor.h"
+#include "ChairPawn.h"
 
-AChairActor::AChairActor()
+AChairPawn::AChairPawn()
 {
-    // Set this Actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-    PrimaryActorTick.bCanEverTick = true;
+    // Set this Pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
 
     RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     MeshComponent = CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("ProceduralMesh"));
@@ -24,38 +24,38 @@ AChairActor::AChairActor()
         Material = ReferenceVariable.Object;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("Created Chair Actor "));
+    UE_LOG(LogTemp, Warning, TEXT("Created Chair Pawn "));
 }
 
-#if WITH_EDITOR  
-void AChairActor::OnConstruction(const FTransform& Transform)
+/**#if WITH_EDITOR  
+void AChairPawn::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 	GenerateMesh();
 }
-#endif // WITH_EDITOR
+#endif */// WITH_EDITOR
 
-// Called when the game starts or when sActored
-void AChairActor::BeginPlay()
+// Called when the game starts or when sPawned
+void AChairPawn::BeginPlay()
 {
     Super::BeginPlay();
     GenerateMesh();
 }
 
 // Called every frame
-void AChairActor::Tick(float DeltaTime)
+void AChairPawn::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 }
 
-void AChairActor::SetupMeshBuffers()
+void AChairPawn::SetupMeshBuffers()
 {
     int32 VertexCount = 6 * 4; // 6 sides on a cube, 4 verts each
     Vertices.AddUninitialized(VertexCount);
     Triangles.AddUninitialized(6 * 2 * 3); // 2x triangles per cube side, 3 verts each
 }
 
-void AChairActor::GenerateMesh()
+void AChairPawn::GenerateMesh()
 {
     // The number of vertices or polygons wont change at runtime, so we'll just allocate the arrays once
     if (!bHaveBuffersBeenInitialized)
@@ -103,7 +103,7 @@ void AChairActor::GenerateMesh()
     
 }
 
-void AChairActor::GenerateCube(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector InSize, FVector OffsetPos)
+void AChairPawn::GenerateCube(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector InSize, FVector OffsetPos)
 {
     // Calculate a half offset so we get correct center of object
     float OffsetX = InSize.X / 2.0f;
@@ -157,7 +157,7 @@ void AChairActor::GenerateCube(TArray<FRuntimeMeshVertexSimple> &InVertices, TAr
     BuildQuad(InVertices, InTriangles, p1, p0, p4, p5, VertexOffset, TriangleOffset, Normal, Tangent);
 }
 
-void AChairActor::BuildQuad(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector BottomLeft, FVector BottomRight, FVector TopRight, FVector TopLeft, int32 &VertexOffset, int32 &TriangleOffset, FPackedNormal Normal, FPackedNormal Tangent)
+void AChairPawn::BuildQuad(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector BottomLeft, FVector BottomRight, FVector TopRight, FVector TopLeft, int32 &VertexOffset, int32 &TriangleOffset, FPackedNormal Normal, FPackedNormal Tangent)
 {
     int32 Index1 = VertexOffset++;
     int32 Index2 = VertexOffset++;
@@ -183,7 +183,7 @@ void AChairActor::BuildQuad(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray
 }
 
 // Called to bind functionality to input
-/*void AChairActor::SetupPlayerInputComponent(class UInputComponent *InputComp)
+/*void AChairPawn::SetupPlayerInputComponent(class UInputComponent *InputComp)
 {
 
     UE_LOG(LogTemp, Warning, TEXT("Create Input component "));
@@ -191,11 +191,11 @@ void AChairActor::BuildQuad(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray
     Super::SetupPlayerInputComponent(InputComp);
     
     // TODO use mouse to resize objects
-    InputComp->BindAction("ResizeAction", EInputEvent::IE_Pressed, this, &AChairActor::ResizeAction);
+    InputComp->BindAction("ResizeAction", EInputEvent::IE_Pressed, this, &AChairPawn::ResizeAction);
     
     // resize objects using keyboard
-    InputComp->BindAxis("ResizeUpX", this, &AChairActor::ResizeUpX);
-    InputComp->BindAxis("ResizeDownX", this, &AChairActor::ResizeDownX);
-    InputComp->BindAxis("ResizeLeftY", this, &AChairActor::ResizeLeftY);
-    InputComp->BindAxis("ResizeRightY", this, &AChairActor::ResizeRightY);
+    InputComp->BindAxis("ResizeUpX", this, &AChairPawn::ResizeUpX);
+    InputComp->BindAxis("ResizeDownX", this, &AChairPawn::ResizeDownX);
+    InputComp->BindAxis("ResizeLeftY", this, &AChairPawn::ResizeLeftY);
+    InputComp->BindAxis("ResizeRightY", this, &AChairPawn::ResizeRightY);
 }*/

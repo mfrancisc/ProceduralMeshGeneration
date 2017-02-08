@@ -1,69 +1,101 @@
 #include "ZuruTest.h"
-#include "TableActor.h"
-#include "ChairActor.h"
+#include "TablePawn.h"
+#include "ChairPawn.h"
 
-ATableActor::ATableActor()
+ATablePawn::ATablePawn()
 {
-    // Set this Actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+    // Set this Pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
 
     RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     MeshComponent = CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("ProceduralMesh"));
     MeshComponent->bShouldSerializeMeshData = false;
     MeshComponent->SetupAttachment(RootComponent);
-    //MeshComponent->bUseComplexAsSimpleCollision = false;
+	//MeshComponent->OnClicked.AddDynamic(this, &ATablePawn::PossesClicked);
+	
+	//MeshComponent->bUseComplexAsSimpleCollision = false;
 
     // Create a camera and a visible object
-    /*UCameraComponent *OurCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("OurCamera"));
+    UCameraComponent *OurCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("OurCamera"));
     // Attach our camera and visible object to our root component. Offset and rotate the camera.
     OurCamera->SetupAttachment(RootComponent);
     OurCamera->SetRelativeLocation(FVector(-250.0f, 0.0f, 250.0f));
-    OurCamera->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));*/
+    OurCamera->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));
    ConstructorHelpers::FObjectFinder<UMaterialInterface> ReferenceVariable (TEXT("Material'/Game/StarterContent/Materials/M_Wood_Pine.M_Wood_Pine'")); 
    if(ReferenceVariable.Succeeded())
     {
         Material = ReferenceVariable.Object;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("Created Table Actor "));
+   
+    UE_LOG(LogTemp, Warning, TEXT("Created Table Pawn "));
 
-/*FActorSpawnParameters SpawnInfo;
- SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
- FVector Location(0.0f, 0.0f, 0.0f);
- FRotator Rotation(0.0f, 0.0f, 0.0f);
- FActorSpawnParameters SpawnInfo;
- GetWorld()->SpawnActor<AChairActor>(Location, Rotation, SpawnInfo);*/
 }
 
-#if WITH_EDITOR  
-void ATableActor::OnConstruction(const FTransform& Transform)
+/**#if WITH_EDITOR  
+void ATablePawn::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 	GenerateMesh();
 }
-#endif // WITH_EDITOR
+#endif */// WITH_EDITOR
 
-// Called when the game starts or when sActored
-void ATableActor::BeginPlay()
+// Called when the game starts or when sPawned
+void ATablePawn::BeginPlay()
 {
     Super::BeginPlay();
     GenerateMesh();
+	GenerateChair();
+	GenerateChair();
+
+    
 }
 
 // Called every frame
-void ATableActor::Tick(float DeltaTime)
+void ATablePawn::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 }
 
-void ATableActor::SetupMeshBuffers()
+ void ATablePawn::GenerateChair()
+ {
+     UWorld* World = GetWorld();
+     if (World != nullptr)
+     {
+		 // if not the first chair
+		 if (cntChairs > 0) {
+			 ChairYLocation += 40.0f;
+		 }
+
+         FVector Location = GetActorLocation();
+         Location.X += ChairXLocation;
+         Location.Y += ChairYLocation;
+		 Location.Y += ChairZLocation;
+
+         //Location.Z = 70.0f;
+         FRotator Rotation = GetActorRotation();
+		 Rotation.Roll += ChairRollRotation;
+		 Rotation.Yaw += ChairYawRotation;
+		 Rotation.Pitch += ChairPitchRotation;
+		 FActorSpawnParameters Params;
+         //Params.Owner = this;
+         //Params.Instigator = Instigator;
+         //Params.SpawnCollisionHandlingOverride = ESpawnPawnCollisionHandlingMethod::AlwaysSpawn;
+		 //FString PName("Spawned Chair ").AppendInt(cntChairs);
+		 //Params.Name = FText::(cntChairs);
+		 cntChairs++;
+         World->SpawnActor<AChairPawn>(Location, Rotation, Params);
+     }
+ }
+
+void ATablePawn::SetupMeshBuffers()
 {
     int32 VertexCount = 6 * 4; // 6 sides on a cube, 4 verts each
     Vertices.AddUninitialized(VertexCount);
     Triangles.AddUninitialized(6 * 2 * 3); // 2x triangles per cube side, 3 verts each
 }
 
-void ATableActor::GenerateMesh()
+void ATablePawn::GenerateMesh()
 {
     // The number of vertices or polygons wont change at runtime, so we'll just allocate the arrays once
     if (!bHaveBuffersBeenInitialized)
@@ -77,12 +109,19 @@ void ATableActor::GenerateMesh()
     // TABLE GENERATION
     /////////////////////////
 
-    FBox BoundingBox = FBox(-Size / 2.0f, Size / 2.0f);
-    
+	FBox BoundingBox = FBox(-Size/2, Size/2);
+	
     GenerateCube(Vertices, Triangles, Size, OffsetPosT);
     MeshComponent->ClearAllMeshSections();
+	//MeshComponent->AddCollisionConvexMesh(Vertices);
     MeshComponent->CreateMeshSection(0, Vertices, Triangles, BoundingBox, true, EUpdateFrequency::Frequent);
-    MeshComponent->SetMaterial(0, Material);
+	MeshComponent->SetMaterial(0, Material);
+    
+	InitialTableLocation1 = Vertices[1].Position;
+	InitialTableLocation2 = Vertices[2].Position;
+	InitialTableLocation3 = Vertices[3].Position;
+	InitialTableLocation4 = Vertices[4].Position;
+
 
     // create 1° leg
     OffsetPosFirstLeg = FVector(offsetDiffX, offsetDiffY, -offsetDiffZ);
@@ -110,7 +149,7 @@ void ATableActor::GenerateMesh()
     
 }
 
-void ATableActor::GenerateCube(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector InSize, FVector OffsetPos)
+void ATablePawn::GenerateCube(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector InSize, FVector OffsetPos)
 {
     // Calculate a half offset so we get correct center of object
     float OffsetX = InSize.X / 2.0f;
@@ -126,6 +165,15 @@ void ATableActor::GenerateCube(TArray<FRuntimeMeshVertexSimple> &InVertices, TAr
     FVector p5 = FVector(-OffsetX + OffsetPos.X, -OffsetY + OffsetPos.Y, -OffsetZ + OffsetPos.Z);
     FVector p6 = FVector(-OffsetX + OffsetPos.X, -OffsetY + OffsetPos.Y, OffsetZ + OffsetPos.Z);
     FVector p7 = FVector(-OffsetX + OffsetPos.X, OffsetY + OffsetPos.Y, OffsetZ + OffsetPos.Z);
+
+	/*UE_LOG(LogTemp, Warning, TEXT("p0 x: %f , y: %f , z: %f"), p0.X, p0.Y, p0.Z);
+	UE_LOG(LogTemp, Warning, TEXT("p0 x: %f , y: %f , z: %f"), p1.X, p1.Y, p1.Z);
+	UE_LOG(LogTemp, Warning, TEXT("p0 x: %f , y: %f , z: %f"), p2.X, p2.Y, p2.Z);
+	UE_LOG(LogTemp, Warning, TEXT("p0 x: %f , y: %f , z: %f"), p3.X, p3.Y, p3.Z);
+	UE_LOG(LogTemp, Warning, TEXT("p0 x: %f , y: %f , z: %f"), p4.X, p4.Y, p4.Z);
+	UE_LOG(LogTemp, Warning, TEXT("p0 x: %f , y: %f , z: %f"), p5.X, p5.Y, p5.Z);
+	UE_LOG(LogTemp, Warning, TEXT("p0 x: %f , y: %f , z: %f"), p6.X, p6.Y, p6.Z);
+	UE_LOG(LogTemp, Warning, TEXT("p0 x: %f , y: %f , z: %f"), p7.X, p7.Y, p7.Z);*/
 
     // Now we create 6x faces, 4 vertices each
     int32 VertexOffset = 0;
@@ -164,7 +212,7 @@ void ATableActor::GenerateCube(TArray<FRuntimeMeshVertexSimple> &InVertices, TAr
     BuildQuad(InVertices, InTriangles, p1, p0, p4, p5, VertexOffset, TriangleOffset, Normal, Tangent);
 }
 
-void ATableActor::BuildQuad(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector BottomLeft, FVector BottomRight, FVector TopRight, FVector TopLeft, int32 &VertexOffset, int32 &TriangleOffset, FPackedNormal Normal, FPackedNormal Tangent)
+void ATablePawn::BuildQuad(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector BottomLeft, FVector BottomRight, FVector TopRight, FVector TopLeft, int32 &VertexOffset, int32 &TriangleOffset, FPackedNormal Normal, FPackedNormal Tangent)
 {
     int32 Index1 = VertexOffset++;
     int32 Index2 = VertexOffset++;
@@ -190,7 +238,7 @@ void ATableActor::BuildQuad(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray
 }
 
 // Called to bind functionality to input
-/*void ATableActor::SetupPlayerInputComponent(class UInputComponent *InputComp)
+void ATablePawn::SetupPlayerInputComponent(class UInputComponent *InputComp)
 {
 
     UE_LOG(LogTemp, Warning, TEXT("Create Input component "));
@@ -198,16 +246,16 @@ void ATableActor::BuildQuad(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray
     Super::SetupPlayerInputComponent(InputComp);
     
     // TODO use mouse to resize objects
-    InputComp->BindAction("ResizeAction", EInputEvent::IE_Pressed, this, &ATableActor::ResizeAction);
+    InputComp->BindAction("ResizeAction", EInputEvent::IE_Pressed, this, &ATablePawn::ResizeAction);
     
     // resize objects using keyboard
-    InputComp->BindAxis("ResizeUpX", this, &ATableActor::ResizeUpX);
-    InputComp->BindAxis("ResizeDownX", this, &ATableActor::ResizeDownX);
-    InputComp->BindAxis("ResizeLeftY", this, &ATableActor::ResizeLeftY);
-    InputComp->BindAxis("ResizeRightY", this, &ATableActor::ResizeRightY);
-}*/
+    InputComp->BindAxis("ResizeUpX", this, &ATablePawn::ResizeUpX);
+    InputComp->BindAxis("ResizeDownX", this, &ATablePawn::ResizeDownX);
+    InputComp->BindAxis("ResizeLeftY", this, &ATablePawn::ResizeLeftY);
+    InputComp->BindAxis("ResizeRightY", this, &ATablePawn::ResizeRightY);
+}
 
-void ATableActor::ResizeUpX(float axisValue)
+void ATablePawn::ResizeUpX(float axisValue)
 {
     Size.X = Size.X - axisValue*2;
     FBox BoundingBox = FBox(-Size / 2.0f, Size / 2.0f);
@@ -233,7 +281,7 @@ void ATableActor::ResizeUpX(float axisValue)
     MeshComponent->UpdateMeshSection(4, Vertices);
 }
 
-void ATableActor::ResizeDownX(float axisValue)
+void ATablePawn::ResizeDownX(float axisValue)
 {
     // Resize Table
     Size.X = Size.X + axisValue*2;
@@ -253,7 +301,7 @@ void ATableActor::ResizeDownX(float axisValue)
     MeshComponent->UpdateMeshSection(4, Vertices);
 }
 
-void ATableActor::ResizeLeftY(float axisValue)
+void ATablePawn::ResizeLeftY(float axisValue)
 {
     Size.Y = Size.Y - axisValue*2;
     FBox BoundingBox = FBox(-Size / 2.0f, Size / 2.0f);
@@ -279,10 +327,13 @@ void ATableActor::ResizeLeftY(float axisValue)
     MeshComponent->UpdateMeshSection(2, Vertices);
 }
 
-void ATableActor::ResizeRightY(float axisValue)
+void ATablePawn::ResizeRightY(float axisValue)
 {
+	InitialLowerBoundY += axisValue * 2;
+	InitialUpperBoundY += axisValue * 2;
+
     Size.Y = Size.Y + axisValue*2;
-    FBox BoundingBox = FBox(-Size / 2.0f, Size / 2.0f);
+	FBox BoundingBox = FBox(-Size / 2.0f, Size / 2.0f);
     OffsetPosT.Y = OffsetPosT.Y+axisValue;
     GenerateCube(Vertices, Triangles, Size, OffsetPosT);
     // This version updates only the vertices
@@ -297,17 +348,26 @@ void ATableActor::ResizeRightY(float axisValue)
     OffsetPosSecondLeg.Y = OffsetPosSecondLeg.Y+axisValue*2;
     GenerateCube(Vertices, Triangles, LegSize, OffsetPosSecondLeg);
     MeshComponent->UpdateMeshSection(2, Vertices);
+
+	// add chairs if width allows it
+	int32 width = (int32)(Size.Y / 50.0f);
+	UE_LOG(LogTemp, Warning, TEXT("table width: %d"), width);
+	UE_LOG(LogTemp, Warning, TEXT("nr of chairs : %d"), cntChairs);
+	if (width > cntChairs) {
+		GenerateChair();
+	}
+
 }
 
-void ATableActor::ResizeAction()
+void ATablePawn::ResizeAction()
 {
     UE_LOG(LogTemp, Warning, TEXT("Resize Right action "));
     PossesClicked();
 }
 
-void ATableActor::PossesClicked()
+void ATablePawn::PossesClicked()
 {
-/*    APlayerController *PlayerController = Cast<APlayerController>(GetController());
+    APlayerController *PlayerController = Cast<APlayerController>(GetController());
     if (PlayerController != nullptr)
     {
         // Get the coordinates of the mouse from our controller
@@ -318,29 +378,55 @@ void ATableActor::PossesClicked()
         // Do a trace and see if there the position intersects something in the world
         UE_LOG(LogTemp, Warning, TEXT("Maouse locations x: %f , y: %f"), LocationX, LocationY);
         FVector2D MousePosition(LocationX, LocationY);
+		FVector MouseDirection, MousePos;
         FHitResult HitResult;
         const bool bTraceComplex = false;
         if (PlayerController->GetHitResultAtScreenPosition(MousePosition, ECC_Visibility, bTraceComplex, HitResult) == true)
         {
-            UE_LOG(LogTemp, Warning, TEXT("hit point x: %f , y: %f"), HitResult.ImpactPoint.X, HitResult.ImpactPoint.Y);
-              // Get the current location  
-  
+            UE_LOG(LogTemp, Warning, TEXT("hit point x: %f , y: %f"), HitResult.Location.X, HitResult.Location.Y);
+			
           
-            
-            // If the Actor we intersected with is a controller posses it
-            AActor *ClickedActor = Cast<AActor>(HitResult.GetActor());
-            if (ClickedActor != nullptr)
+            // If the Pawn we intersected with is a controller posses it
+			ATablePawn *ClickedPawn = Cast<ATablePawn>(HitResult.GetActor());
+            if (ClickedPawn != nullptr)
             {
+				UE_LOG(LogTemp, Warning, TEXT("pint of impact x: %f , y: %f"), HitResult.ImpactPoint.X, HitResult.ImpactPoint.Y);
+				
+				
+                UE_LOG(LogTemp, Warning, TEXT("hit point in Pawn"));
+				// check if click is in vertex bottom right table corner
+				if ((InitialLowerBoundX <= HitResult.ImpactPoint.X && HitResult.ImpactPoint.X <= InitialUpperBoundX) && (InitialLowerBoundY <=HitResult.ImpactPoint.Y && HitResult.ImpactPoint.Y <= InitialUpperBoundY)) {
+					
+					UE_LOG(LogTemp, Warning, TEXT("hit point in Pawn bottome right corner!!!"));
+					
+					// convert mouse position from screen to world
+					PlayerController->DeprojectMousePositionToWorld(MousePos, MouseDirection);
+					UE_LOG(LogTemp, Warning, TEXT("mousePos x: %f , y: %f "), MousePos.X, MousePos.Y);
+					ResizeRightY(1.0f);
+				}
 
-                // TODO scale Actor based on mouse dragging
-
-                UE_LOG(LogTemp, Warning, TEXT("hit point in Actor"));
-                // Unposses ourselves
-                PlayerController->UnPossess();
+				
+				
+				//UE_LOG(LogTemp, Warning, TEXT("Initial Table location x: %f , y: %f , z: %f"), InitialTableLocation1.X, InitialTableLocation1.Y, InitialTableLocation1.Z);
+				/*	UE_LOG(LogTemp, Warning, TEXT("Initial Table location x: %f , y: %f , z: %f"), InitialTableLocation2.X, InitialTableLocation2.Y, InitialTableLocation2.Z);
+				UE_LOG(LogTemp, Warning, TEXT("Initial Table location x: %f , y: %f , z: %f"), InitialTableLocation3.X, InitialTableLocation3.Y, InitialTableLocation3.Z);
+				UE_LOG(LogTemp, Warning, TEXT("Initial Table location x: %f , y: %f , z: %f"), InitialTableLocation4.X, InitialTableLocation4.Y, InitialTableLocation4.Z);
+				UE_LOG(LogTemp, Warning, TEXT("Initial Table WORLD location x: %f , y: %f , z: %f"), WorldLocation.X, WorldLocation.Y, WorldLocation.Z);
+			*/	
+				
+				//IRuntimeMeshVerticesBuilder Vertex;
+				//MeshComponent->GetSectionMesh(0, &Vertex, Indices);
+				// Unposses ourselves
+                //PlayerController->UnPossess();
                 // Posses the controller we clicked on
-                PlayerController->Possess(ClickedActor);
+                //PlayerController->Possess(ClickedPawn);
+
+				// todo if vertex clicked
+				// and resized to rigth
+				// GenerateChair();
+	
             }
         }
-    }*/
+    }
 }
 

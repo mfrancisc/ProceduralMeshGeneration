@@ -1,26 +1,29 @@
 #pragma once
 
-#include "GameFramework/Actor.h"
+#include "GameFramework/Pawn.h"
 #include "RuntimeMeshComponent.h"
-#include "TableActor.generated.h"
+#include "TablePawn.generated.h"
 
 UCLASS()
-class ZURUTEST_API ATableActor : public AActor
+class ZURUTEST_API ATablePawn : public APawn
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this Actor's properties
-	ATableActor();
+	// Sets default values for this Pawn's properties
+	ATablePawn();
 
-	// Called when the game starts or when sActored
+	// Called when the game starts or when sPawned
 	virtual void BeginPlay() override;
 	
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
 
+	//UFUNCTION(Category = Default)
+	//virtual void OnClicked(UPrimitiveComponent* pComponent);
+
 	 // Called to bind functionality to input
-    //virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent);
+    virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent);
 
 	void ResizeAction();
     void PossesClicked();
@@ -29,9 +32,10 @@ public:
     void ResizeLeftY(float axisValue);
     void ResizeRightY(float axisValue);
 
-	#if WITH_EDITOR
+
+	/**#if WITH_EDITOR
     	virtual void OnConstruction(const FTransform& Transform) override;
-	#endif   // WITH_EDITOR
+	#endif */  // WITH_EDITOR
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
     FVector Size = FVector(100.0f, 100.0f, 5.0f);
@@ -46,6 +50,28 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
     float offsetDiffZ = Size.Z * 5 + 2.5f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
+	float ChairXLocation = -70.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
+	float ChairYLocation = -20.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
+	float ChairZLocation = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
+	float ChairRollRotation = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
+	float ChairYawRotation = 180.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
+	float ChairPitchRotation = 0.0f;
+
+	int cntChairs = 0;
+
+	FVector WorldLocation;
+
     // initial table offeset
     FVector OffsetPosT = FVector(0.0f, 0.0f, 0.0f);
     FVector InitialOffsetPosT = FVector(0.0f, 0.0f, 0.0f);
@@ -53,6 +79,15 @@ public:
     FVector OffsetPosSecondLeg;
     FVector OffsetPosThirdLeg;
     FVector OffsetPosFourthLeg;
+	FVector InitialTableLocation1;
+	FVector InitialTableLocation2;
+	FVector InitialTableLocation3;
+	FVector InitialTableLocation4;
+
+	float InitialLowerBoundX = -280.0f;
+	float InitialUpperBoundX = -260.0f;
+	float InitialLowerBoundY = 60.0f;
+	float InitialUpperBoundY = 80.0f;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
     FVector LegSize = FVector(5.0f, 5.0f, 50.0f);
@@ -74,6 +109,7 @@ private:
     void BuildQuad(TArray<FRuntimeMeshVertexSimple>& InVertices, TArray<int32>& InTriangles, FVector BottomLeft, FVector BottomRight, FVector TopRight, FVector TopLeft, int32& VertexOffset, int32& TriangleOffset, FPackedNormal Normal, FPackedNormal Tangent);
     // Mesh buffers
     void SetupMeshBuffers();
+    void GenerateChair();
     bool bHaveBuffersBeenInitialized = false;
     TArray<FRuntimeMeshVertexSimple> Vertices;
     TArray<int32> Triangles;

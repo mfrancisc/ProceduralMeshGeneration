@@ -1,17 +1,17 @@
 #pragma once
 
-#include "GameFramework/Actor.h"
+#include "GameFramework/Pawn.h"
 #include "RuntimeMeshComponent.h"
-#include "ChairActor.generated.h"
+#include "ChairPawn.generated.h"
 
 UCLASS()
-class ZURUTEST_API AChairActor : public AActor
+class ZURUTEST_API AChairPawn : public APawn
 {
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
-	AChairActor();
+	// Sets default values for this Pawn's properties
+	AChairPawn();
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -19,33 +19,33 @@ public:
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
 
-	#if WITH_EDITOR
+	/**#if WITH_EDITOR
     	virtual void OnConstruction(const FTransform& Transform) override;
-	#endif   // WITH_EDITOR
+	#endif  */ // WITH_EDITOR
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
     FVector ChairSize = FVector(25.0f, 25.0f, 2.5f);
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
-    FVector OffsetPosChair = FVector(0.0f, 0.0f, 0.0f);
+    FVector OffsetPosChair = FVector(-0.0f, 0.0f, -3.0f);
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
-    FVector ChairBackSize = FVector(2.5f, 25.0f, 25.0f);
+    FVector ChairBackSize = FVector(3.0f, 25.0f, 25.0f);
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
-    FVector OffsetPosBackChair = FVector(0.0f, 0.0f, 0.0f);
+    FVector OffsetPosBackChair = FVector(11.0f, 0.0f, 10.0f);
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
     FVector ChairLegSize = FVector(2.5f, 2.5f, 25.0f);
 
      UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
-    float offsetDiffLegX = ChairSize.X / 2.0f - 2.5f;
+    float offsetDiffLegX = 10.5f;
    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
-    float offsetDiffLegY = ChairSize.Y / 2.0f - 2.5f;
+    float offsetDiffLegY = 10.5f;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
-    float offsetDiffLegZ = ChairSize.Z * 5 + 2.5f;
+    float offsetDiffLegZ = 17.0f;
 
 	FVector OffsetPosFirstLeg;
     FVector OffsetPosSecondLeg;
