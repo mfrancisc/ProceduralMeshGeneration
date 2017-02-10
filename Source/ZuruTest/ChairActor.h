@@ -1,27 +1,23 @@
 #pragma once
 
-#include "GameFramework/Pawn.h"
+#include "GameFramework/Actor.h"
 #include "RuntimeMeshComponent.h"
-#include "ChairPawn.generated.h"
+#include "ChairActor.generated.h"
 
 UCLASS()
-class ZURUTEST_API AChairPawn : public APawn
+class ZURUTEST_API AChairActor : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this Pawn's properties
-	AChairPawn();
+	// Sets default values for this Actor's properties
+	AChairActor();
 
-	// Called when the game starts or when spawned
+	// Called when the game starts or when sActored
 	virtual void BeginPlay() override;
 	
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
-
-	/**#if WITH_EDITOR
-    	virtual void OnConstruction(const FTransform& Transform) override;
-	#endif  */ // WITH_EDITOR
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
     FVector ChairSize = FVector(25.0f, 25.0f, 2.5f);
@@ -54,9 +50,6 @@ public:
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
     UMaterialInterface* Material;
-
-    UPROPERTY(EditAnywhere)
-    USceneComponent* OurVisibleComponent;
 
 protected:
     

@@ -1,61 +1,46 @@
 #include "ZuruTest.h"
-#include "ChairPawn.h"
+#include "ChairActor.h"
 
-AChairPawn::AChairPawn()
+AChairActor::AChairActor()
 {
-    // Set this Pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+    // Set this Actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
     RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     MeshComponent = CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("ProceduralMesh"));
     MeshComponent->bShouldSerializeMeshData = false;
     MeshComponent->SetupAttachment(RootComponent);
-    //MeshComponent->bUseComplexAsSimpleCollision = false;
-
-    // Create a camera and a visible object
-    /*UCameraComponent *OurCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("OurCamera"));
-    // Attach our camera and visible object to our root component. Offset and rotate the camera.
-    OurCamera->SetupAttachment(RootComponent);
-    OurCamera->SetRelativeLocation(FVector(-250.0f, 0.0f, 250.0f));
-    OurCamera->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));*/
+   
    ConstructorHelpers::FObjectFinder<UMaterialInterface> ReferenceVariable (TEXT("Material'/Game/StarterContent/Materials/M_Wood_Pine.M_Wood_Pine'")); 
    if(ReferenceVariable.Succeeded())
     {
         Material = ReferenceVariable.Object;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("Created Chair Pawn "));
+    UE_LOG(LogTemp, Warning, TEXT("Created Chair Actor "));
 }
 
-/**#if WITH_EDITOR  
-void AChairPawn::OnConstruction(const FTransform& Transform)
-{
-	Super::OnConstruction(Transform);
-	GenerateMesh();
-}
-#endif */// WITH_EDITOR
-
-// Called when the game starts or when sPawned
-void AChairPawn::BeginPlay()
+// Called when the game starts or when sActored
+void AChairActor::BeginPlay()
 {
     Super::BeginPlay();
     GenerateMesh();
 }
 
 // Called every frame
-void AChairPawn::Tick(float DeltaTime)
+void AChairActor::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 }
 
-void AChairPawn::SetupMeshBuffers()
+void AChairActor::SetupMeshBuffers()
 {
     int32 VertexCount = 6 * 4; // 6 sides on a cube, 4 verts each
     Vertices.AddUninitialized(VertexCount);
     Triangles.AddUninitialized(6 * 2 * 3); // 2x triangles per cube side, 3 verts each
 }
 
-void AChairPawn::GenerateMesh()
+void AChairActor::GenerateMesh()
 {
     // The number of vertices or polygons wont change at runtime, so we'll just allocate the arrays once
     if (!bHaveBuffersBeenInitialized)
@@ -103,7 +88,7 @@ void AChairPawn::GenerateMesh()
     
 }
 
-void AChairPawn::GenerateCube(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector InSize, FVector OffsetPos)
+void AChairActor::GenerateCube(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector InSize, FVector OffsetPos)
 {
     // Calculate a half offset so we get correct center of object
     float OffsetX = InSize.X / 2.0f;
@@ -157,7 +142,7 @@ void AChairPawn::GenerateCube(TArray<FRuntimeMeshVertexSimple> &InVertices, TArr
     BuildQuad(InVertices, InTriangles, p1, p0, p4, p5, VertexOffset, TriangleOffset, Normal, Tangent);
 }
 
-void AChairPawn::BuildQuad(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector BottomLeft, FVector BottomRight, FVector TopRight, FVector TopLeft, int32 &VertexOffset, int32 &TriangleOffset, FPackedNormal Normal, FPackedNormal Tangent)
+void AChairActor::BuildQuad(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<int32> &InTriangles, FVector BottomLeft, FVector BottomRight, FVector TopRight, FVector TopLeft, int32 &VertexOffset, int32 &TriangleOffset, FPackedNormal Normal, FPackedNormal Tangent)
 {
     int32 Index1 = VertexOffset++;
     int32 Index2 = VertexOffset++;
@@ -181,21 +166,3 @@ void AChairPawn::BuildQuad(TArray<FRuntimeMeshVertexSimple> &InVertices, TArray<
     InVertices[Index1].Normal = InVertices[Index2].Normal = InVertices[Index3].Normal = InVertices[Index4].Normal = Normal;
     InVertices[Index1].Tangent = InVertices[Index2].Tangent = InVertices[Index3].Tangent = InVertices[Index4].Tangent = Tangent;
 }
-
-// Called to bind functionality to input
-/*void AChairPawn::SetupPlayerInputComponent(class UInputComponent *InputComp)
-{
-
-    UE_LOG(LogTemp, Warning, TEXT("Create Input component "));
-    check(InputComponent);
-    Super::SetupPlayerInputComponent(InputComp);
-    
-    // TODO use mouse to resize objects
-    InputComp->BindAction("ResizeAction", EInputEvent::IE_Pressed, this, &AChairPawn::ResizeAction);
-    
-    // resize objects using keyboard
-    InputComp->BindAxis("ResizeUpX", this, &AChairPawn::ResizeUpX);
-    InputComp->BindAxis("ResizeDownX", this, &AChairPawn::ResizeDownX);
-    InputComp->BindAxis("ResizeLeftY", this, &AChairPawn::ResizeLeftY);
-    InputComp->BindAxis("ResizeRightY", this, &AChairPawn::ResizeRightY);
-}*/

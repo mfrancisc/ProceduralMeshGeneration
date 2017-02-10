@@ -1,41 +1,41 @@
 #pragma once
 
-#include "GameFramework/Pawn.h"
+#include "GameFramework/Actor.h"
 #include "RuntimeMeshComponent.h"
-#include "TablePawn.generated.h"
+#include "TableActor.generated.h"
 
 UCLASS()
-class ZURUTEST_API ATablePawn : public APawn
+class ZURUTEST_API ATableActor : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this Pawn's properties
-	ATablePawn();
+	// Sets default values for this Actor's properties
+	ATableActor();
 
-	// Called when the game starts or when sPawned
+	// Called when the game starts or when sActored
 	virtual void BeginPlay() override;
 	
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
 
-	//UFUNCTION(Category = Default)
-	//virtual void OnClicked(UPrimitiveComponent* pComponent);
-
-	 // Called to bind functionality to input
-    virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent);
-
+	void StopResizeAction();
 	void ResizeAction();
-    void PossesClicked();
+
+	void PossesClicked();
     void ResizeDownX(float axisValue);
     void ResizeUpX(float axisValue);
     void ResizeLeftY(float axisValue);
     void ResizeRightY(float axisValue);
+	void GenerateChairSide1();
+	void GenerateChairSide2();
+	void GenerateChairSide3();
+	void GenerateChairSide4();
 
 
-	/**#if WITH_EDITOR
+	#if WITH_EDITOR
     	virtual void OnConstruction(const FTransform& Transform) override;
-	#endif */  // WITH_EDITOR
+	#endif   // WITH_EDITOR
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
     FVector Size = FVector(100.0f, 100.0f, 5.0f);
@@ -51,13 +51,13 @@ public:
     float offsetDiffZ = Size.Z * 5 + 2.5f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
-	float ChairXLocation = -70.0f;
+	float ChairXLoc = -50.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
-	float ChairYLocation = -20.0f;
+	float ChairYLoc = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
-	float ChairZLocation = 0.0f;
+	float ChairZLoc = -25.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
 	float ChairRollRotation = 0.0f;
@@ -68,26 +68,23 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
 	float ChairPitchRotation = 0.0f;
 
-	int cntChairs = 0;
-
-	FVector WorldLocation;
-
     // initial table offeset
     FVector OffsetPosT = FVector(0.0f, 0.0f, 0.0f);
     FVector InitialOffsetPosT = FVector(0.0f, 0.0f, 0.0f);
-    FVector OffsetPosFirstLeg;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
+	FVector OffsetPosFirstLeg;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
     FVector OffsetPosSecondLeg;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
     FVector OffsetPosThirdLeg;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
     FVector OffsetPosFourthLeg;
-	FVector InitialTableLocation1;
-	FVector InitialTableLocation2;
-	FVector InitialTableLocation3;
-	FVector InitialTableLocation4;
 
-	float InitialLowerBoundX = -280.0f;
-	float InitialUpperBoundX = -260.0f;
-	float InitialLowerBoundY = 60.0f;
-	float InitialUpperBoundY = 80.0f;
+	// initial bouds for table clickable corner
+	float InitialLowerBoundX = 40.0f;
+	float InitialUpperBoundX = 60.0f;
+	float InitialLowerBoundY = 0.0f;
+	float InitialUpperBoundY = 10.0f;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
     FVector LegSize = FVector(5.0f, 5.0f, 50.0f);
@@ -95,13 +92,16 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Parameters")
     UMaterialInterface* Material;
 
-    UPROPERTY(EditAnywhere)
-    USceneComponent* OurVisibleComponent;
-
 protected:
     
     UPROPERTY()
     URuntimeMeshComponent* MeshComponent;
+
+	int32 cntChairs = 0;
+	int32 chairsPerSide12 = 0;
+	FVector WorldLocation;
+	FVector MousePosWhenClicked;
+	FVector MouseDirectionWhenClicked;
 
 private:
     void GenerateMesh();
@@ -109,9 +109,14 @@ private:
     void BuildQuad(TArray<FRuntimeMeshVertexSimple>& InVertices, TArray<int32>& InTriangles, FVector BottomLeft, FVector BottomRight, FVector TopRight, FVector TopLeft, int32& VertexOffset, int32& TriangleOffset, FPackedNormal Normal, FPackedNormal Tangent);
     // Mesh buffers
     void SetupMeshBuffers();
-    void GenerateChair();
+	AActor* GenerateChair();
+	AActor* Chair4;
     bool bHaveBuffersBeenInitialized = false;
     TArray<FRuntimeMeshVertexSimple> Vertices;
     TArray<int32> Triangles;
+	bool bResize;
+	APlayerController *PlayerController;
+	TArray<AActor*> FoundActors;
+	UWorld* World;
 
 };
