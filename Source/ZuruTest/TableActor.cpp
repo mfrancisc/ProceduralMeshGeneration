@@ -18,6 +18,7 @@ ATableActor::ATableActor()
    OurCamera->SetupAttachment(RootComponent);
    OurCamera->SetRelativeLocation(FVector(-250.0f, 0.0f, 250.0f));
    OurCamera->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));
+   OurCamera->SetAbsolute(true, true, true);
   
    // create material for mesh component
    ConstructorHelpers::FObjectFinder<UMaterialInterface> ReferenceVariable (TEXT("Material'/Game/StarterContent/Materials/M_Wood_Pine.M_Wood_Pine'")); 
@@ -79,11 +80,11 @@ void ATableActor::Tick(float DeltaTime)
 			UE_LOG(LogTemp, Warning, TEXT("mousePosWhenClicked x: %f , y: %f "), MousePosWhenClicked.X, MousePosWhenClicked.Y);
 			UE_LOG(LogTemp, Warning, TEXT("mousePos x: %f , y: %f "), MousePos.X, MousePos.Y);
 
-			ResizeRightY((MousePos.Y- MousePosWhenClicked.Y) * 2000 * DeltaTime);
+			ResizeRightY((MousePos.Y- MousePosWhenClicked.Y) * 500 * DeltaTime);
 			MousePosWhenClicked.Y = MousePos.Y;
 		}// if is less resize to left ( till min size )
 		else if (MousePos.Y < MousePosWhenClicked.Y) {
-			ResizeLeftY((MousePosWhenClicked.Y - MousePos.Y) * 2000 * DeltaTime);
+			ResizeLeftY((MousePosWhenClicked.Y - MousePos.Y) * 500 * DeltaTime);
 			MousePosWhenClicked.Y = MousePos.Y;
 		}
 		
